@@ -1,31 +1,58 @@
-
 <!doctype html>
 <html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Supabase Notes – mini projekt</title>
+
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Supabase -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body style="font-family: Arial; max-width: 800px; margin: 30px auto;">
-  <h1>📝 Supabase Notes – mini projekt</h1>
 
-  <h2>Új jegyzet</h2>
-  <form id="noteForm" style="display:grid; gap:10px;">
-    <input id="title" placeholder="Cím" required />
-    <textarea id="content" placeholder="Jegyzet szövege" rows="5" required></textarea>
-    <button type="submit">Mentés</button>
-  </form>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex justify-center p-6">
+  <div class="w-full max-w-2xl">
 
-  <hr />
-  <h2>Jegyzetek</h2>
-  <div id="list"></div>
+    <h1 class="text-3xl font-bold mb-6 text-center">📝 Supabase Notes</h1>
+
+    <!-- Új jegyzet -->
+    <div class="bg-gray-800 p-5 rounded-2xl shadow-lg">
+      <h2 class="text-xl font-semibold mb-4">Új jegyzet</h2>
+
+      <form id="noteForm" class="flex flex-col gap-3">
+        <input id="title"
+          class="bg-gray-700 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Cím"
+          required />
+
+        <textarea id="content"
+          class="bg-gray-700 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Jegyzet szövege"
+          rows="5"
+          required></textarea>
+
+        <button
+          class="bg-blue-600 hover:bg-blue-700 transition p-2 rounded-lg font-semibold">
+          Mentés
+        </button>
+      </form>
+    </div>
+
+    <!-- Lista -->
+    <div class="mt-6">
+      <h2 class="text-xl font-semibold mb-3">Jegyzetek</h2>
+      <div id="list" class="space-y-4"></div>
+    </div>
+
+  </div>
 
   <script>
     const SUPABASE_URL = "https://onnzomlakntzhjvmcptr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ubnpvbWxha250emhqdm1jcHRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMjg1NzUsImV4cCI6MjA4ODkwNDU3NX0.c7iOFHFEi4Gc9Rbwe2jAA3dEIuM6j6TMcJC73fh3pgQ";
+    const SUPABASE_ANON_KEY = "YOUR_KEY_HERE";
 
-    // Nevezzük át, hogy ne ütközzön a globális supabase objektummal
     const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
@@ -46,23 +73,21 @@
         .select("id, title, content, created_at")
         .order("created_at", { ascending: false });
 
-      console.log("SELECT:", data, error);
-
       if (error) {
-        listEl.innerHTML = `<p style="color:red;">SELECT hiba: ${escapeHtml(error.message)}</p>`;
+        listEl.innerHTML = `<p class="text-red-400">Hiba: ${escapeHtml(error.message)}</p>`;
         return;
       }
 
       if (!data || data.length === 0) {
-        listEl.innerHTML = `<p>Még nincs egyetlen jegyzet sem.</p>`;
+        listEl.innerHTML = `<p class="text-gray-400">Még nincs jegyzet.</p>`;
         return;
       }
 
       listEl.innerHTML = data.map(note => `
-        <div style="border:1px solid #ccc; padding:10px; margin:10px 0;">
-          <h3>${escapeHtml(note.title)}</h3>
-          <p>${escapeHtml(note.content)}</p>
-          <small>${escapeHtml(note.created_at)}</small>
+        <div class="bg-gray-800 p-4 rounded-xl shadow border border-gray-700">
+          <h3 class="text-lg font-bold mb-1">${escapeHtml(note.title)}</h3>
+          <p class="text-gray-300 mb-2">${escapeHtml(note.content)}</p>
+          <small class="text-gray-500">${escapeHtml(note.created_at)}</small>
         </div>
       `).join("");
     }
@@ -74,25 +99,19 @@
       const content = document.getElementById("content").value.trim();
 
       if (!title || !content) {
-        alert("Mindkét mező kitöltése kötelező.");
+        alert("Minden mező kötelező!");
         return;
       }
 
-      console.log("Mentés indul:", { title, content });
-
-      const { data, error } = await supabaseClient
+      const { error } = await supabaseClient
         .from("notes")
-        .insert([{ title, content }])
-        .select();
-
-      console.log("INSERT:", data, error);
+        .insert([{ title, content }]);
 
       if (error) {
-        alert("INSERT hiba: " + error.message);
+        alert("Hiba: " + error.message);
         return;
       }
 
-      alert("Sikeres mentés!");
       form.reset();
       loadNotes();
     });
